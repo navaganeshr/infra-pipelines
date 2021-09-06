@@ -1,0 +1,45 @@
+pipeline {
+    agent {
+        label 'master'
+    }
+
+    options {
+        skipStagesAfterUnstable()
+        ansiColor('xterm')
+        
+    }
+
+    stages {
+        stage('Plan') {
+            steps {
+                script{    
+                withAWS(credentials: 'aws-dev', region: 'us-west-2') {    
+                sh " terraform init -backend-config=env/backend/${JOB_BASE_NAME}.tfvars -input=false "
+                sh " terraform workspace select ${JOB_BASE_NAME} "
+                sh " terraform plan -var-file=env/backend.tfvars -var-file=env/backend/${JOB_BASE_NAME}.tfvars -input=false -out tfplan "
+                sh " terraform show -no-color tfplan > tfplan.txt "
+                 }
+               }
+           }
+        }  
+
+        stage('Approval') {
+            steps {
+                script {
+                    def plan = readFile "tfplan.txt"
+                    input message: "Do you want to apply the plan?",
+                        parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+
+                }
+            }
+        }
+
+        stage('Apply') {
+            steps {
+                script {
+                sh "terraform apply -input=false tfplan "
+              }
+            } 
+        }
+    }  
+}
