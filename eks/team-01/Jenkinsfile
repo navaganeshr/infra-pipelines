@@ -37,7 +37,8 @@ pipeline {
         stage('Apply') {
             steps {
                 script {
-                sh "terraform apply -input=false tfplan "
+                echo"Applying Terraform Template"    
+                //sh "terraform apply -input=false tfplan "
               }
             } 
         }
