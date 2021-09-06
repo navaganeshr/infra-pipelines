@@ -20,6 +20,7 @@ pipeline {
             steps {
                 script{    
                 withAWS(credentials: 'aws-dev', region: 'us-west-2') {  
+                sh " terraform workspace new ${JOB_BASE_NAME} || true"    
                 sh " terraform init  "
                 sh " terraform workspace select ${JOB_BASE_NAME} "
                 sh " terraform plan  -var-file=environment/${JOB_BASE_NAME}.tfvars -input=false -out tfplan "
