@@ -10,13 +10,19 @@ pipeline {
     }
 
     stages {
+        stage('Clone'){
+            steps {
+               git branch: 'main', url: 'https://github.com/navaganeshr/eks_cluster.git'
+            }
+        }
+        
         stage('Plan') {
             steps {
                 script{    
-                withAWS(credentials: 'aws-dev', region: 'us-west-2') {    
-                sh " terraform init -backend-config=env/backend/${JOB_BASE_NAME}.tfvars -input=false "
+                withAWS(credentials: 'aws-dev', region: 'us-west-2') {  
+                sh " terraform init  "
                 sh " terraform workspace select ${JOB_BASE_NAME} "
-                sh " terraform plan -var-file=env/backend.tfvars -var-file=env/backend/${JOB_BASE_NAME}.tfvars -input=false -out tfplan "
+                sh " terraform plan  -var-file=environment/${JOB_BASE_NAME}.tfvars -input=false -out tfplan "
                 sh " terraform show -no-color tfplan > tfplan.txt "
                  }
                }
@@ -38,7 +44,7 @@ pipeline {
             steps {
                 script {
                 echo"Applying Terraform Template"    
-                //sh "terraform apply -input=false tfplan "
+                sh "terraform apply -input=false tfplan "
               }
             } 
         }
